@@ -64,9 +64,9 @@ class handler(BaseHTTPRequestHandler):
                 existing_hwid = record.get("hwid")
                 if existing_hwid is None:
                     supabase_request("PATCH", f"key?key=eq.{key}", {"hwid": hwid})
-                    self._respond(200, {"status": "ok", "k": ENC_KEY})
+                    self._respond(200, {"status": "ok", "k": ENC_KEY, "telegram_id": record.get("telegram_id")})
                 elif existing_hwid == hwid:
-                    self._respond(200, {"status": "ok", "k": ENC_KEY})
+                    self._respond(200, {"status": "ok", "k": ENC_KEY, "telegram_id": record.get("telegram_id")})
                 else:
                     self._respond(403, {"error": "hwid mismatch"})
             except Exception as e:

@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 BOT_SECRET = os.environ.get("BOT_SECRET")
+ENC_KEY = os.environ.get("ENC_KEY")
 
 def generate_key():
     parts = [''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) for _ in range(4)]
@@ -63,9 +64,9 @@ class handler(BaseHTTPRequestHandler):
                 existing_hwid = record.get("hwid")
                 if existing_hwid is None:
                     supabase_request("PATCH", f"key?key=eq.{key}", {"hwid": hwid})
-                    self._respond(200, {"status": "ok", "message": "activated"})
+                    self._respond(200, {"status": "ok", "k": ENC_KEY})
                 elif existing_hwid == hwid:
-                    self._respond(200, {"status": "ok"})
+                    self._respond(200, {"status": "ok", "k": ENC_KEY})
                 else:
                     self._respond(403, {"error": "hwid mismatch"})
             except Exception as e:

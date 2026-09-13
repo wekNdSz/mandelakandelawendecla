@@ -13,6 +13,13 @@ def generate_key():
     parts = [''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) for _ in range(4)]
     return '-'.join(parts)
 
+def xor_bytes(data: bytes, key: bytes) -> bytes:
+    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
+
+def obfuscate_enc_key(enc_key: str, user_key: str) -> str:
+    result = xor_bytes(enc_key.encode(), user_key.encode())
+    return result.hex()
+
 def supabase_request(method, path, data=None):
     import urllib.request
     url = f"{SUPABASE_URL}/rest/v1/{path}"
@@ -62,11 +69,12 @@ class handler(BaseHTTPRequestHandler):
                 if not record.get("active"):
                     return self._respond(403, {"error": "key disabled"})
                 existing_hwid = record.get("hwid")
+                obf = obfuscate_enc_key(ENC_KEY, key)
                 if existing_hwid is None:
                     supabase_request("PATCH", f"key?key=eq.{key}", {"hwid": hwid})
-                    self._respond(200, {"status": "ok", "k": ENC_KEY, "telegram_id": record.get("telegram_id")})
+                    self._respond(200, {"status": "ok", "k": obf, "telegram_id": record.get("telegram_id")})
                 elif existing_hwid == hwid:
-                    self._respond(200, {"status": "ok", "k": ENC_KEY, "telegram_id": record.get("telegram_id")})
+                    self._respond(200, {"status": "ok", "k": obf, "telegram_id": record.get("telegram_id")})
                 else:
                     self._respond(403, {"error": "hwid mismatch"})
             except Exception as e:
